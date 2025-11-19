@@ -23,6 +23,8 @@ jobs:
 
       - name: Terraform Init
         run: terraform init
+      - name: Terraform Plan
+        run: terraform plan
       - name: Debug — List workspace structure
         run: |
           echo "Current Directory:"
