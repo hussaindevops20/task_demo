@@ -26,9 +26,11 @@ jobs:
 
       - name: Terraform Apply
         run: terraform apply -auto-approve -var-file="deploy.tfvars"
-
-      # Upload terraform state file to S3
-      - name: Upload TF State to S3
+      - name: Upload terraform.tfstate to S3
         run: |
-          aws s3 cp terraform.tfstate s3://testtingg123/states/terraform.tfstate --acl private
+          echo "Looking for tfstate file..."
+          find . -name "*.tfstate"
+
+          echo "Uploading terraform.tfstate to S3..."
+          aws s3 cp terraform/terraform.tfstate s3://testtingg123/states/terraform.tfstate --acl private
 
