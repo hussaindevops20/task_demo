@@ -1,0 +1,64 @@
+name: Terraform Apply & Destroy
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      do_destroy:
+        description: "Type YES to destroy resources"
+        required: true
+        default: "NO"
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: ap-northeast-1
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.8.0
+
+      - name: Terraform Init
+        run: terraform init -input=false
+
+      # --------------------------
+      # APPLY (only on push)
+      # --------------------------
+      - name: Terraform Validate
+        if: github.event_name == 'push'
+        run: terraform validate
+
+      - name: Terraform Plan
+        if: github.event_name == 'push'
+        run: terraform plan -var-file="deploy.tfvars"
+
+      - name: Terraform Apply
+        if: github.event_name == 'push'
+        run: terraform apply -auto-approve -var-file="deploy.tfvars"
+
+      # --------------------------
+      # DESTROY (manual trigger)
+      # --------------------------
+      - name: Confirm Destroy
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          if [ "${{ github.event.inputs.do_destroy }}" != "YES" ]; then
+            echo "Destroy NOT confirmed. Exiting!"
+            exit 1
+          fi
+
+      - name: Terraform Destroy
+        if: github.event_name == 'workflow_dispatch'
+        run: terraform destroy -auto-approve -var-file="deploy.tfvars"
+
