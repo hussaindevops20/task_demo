@@ -23,7 +23,12 @@ jobs:
 
       - name: Terraform Init
         run: terraform init
-
+      - name: Debug — List workspace structure
+        run: |
+          echo "Current Directory:"
+          pwd
+          echo "------ FILE STRUCTURE ------"
+          ls -R .
       - name: Terraform Apply
         run: terraform apply -auto-approve -var-file="deploy.tfvars"
       - name: Upload terraform.tfstate to S3
